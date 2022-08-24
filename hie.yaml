@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "./Data"
+      component: "lib:git"
+    - path: "./tests/Tests.hs"
+      component: "test:test-unit"
+    - path: "./tests/Monad.hs"
+      component: "test:test-repository"
+    - path: "./tests/Repo.hs"
+      component: "test:test-repository"

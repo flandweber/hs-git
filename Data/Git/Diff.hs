@@ -43,7 +43,7 @@ import Data.Git.Diff.Patience (Item(..), diff)
 -- reference).
 data BlobContent = FileContent [L.ByteString] -- ^ Text file's lines
                  | BinaryContent L.ByteString -- ^ Binary content
-    deriving (Show)
+    deriving (Eq, Show)
 
 -- | This is a blob description at a given state (revision)
 data BlobState hash = BlobState
@@ -52,13 +52,7 @@ data BlobState hash = BlobState
     , bsRef      :: Ref hash
     , bsContent  :: BlobContent
     }
-    deriving (Show)
-
--- | Two 'BlobState' are equal if they have the same filename, i.e.,
---
--- > ((BlobState x _ _ _) == (BlobState y _ _ _)) = (x == y)
-instance Eq (BlobState hash) where
-    (BlobState f1 _ _ _) == (BlobState f2 _ _ _) = f2 == f1
+    deriving (Eq, Show)
 
 -- | Represents a file state between two revisions
 -- A file (a blob) can be present in the first Tree's revision but not in the
@@ -68,6 +62,7 @@ data BlobStateDiff hash =
       OnlyOld   (BlobState hash)
     | OnlyNew   (BlobState hash)
     | OldAndNew (BlobState hash) (BlobState hash)
+    deriving (Eq, Show)
 
 buildListForDiff :: (Typeable hash, HashAlgorithm hash)
                  => Git hash -> Ref hash -> IO [BlobState hash]
@@ -144,9 +139,9 @@ getDiffWith f acc ref1 ref2 git = do
         doDiffWith [bs1]     []        = [OnlyOld bs1]
         doDiffWith []        (bs2:xs2) = (OnlyNew bs2):(doDiffWith [] xs2)
         doDiffWith (bs1:xs1) xs2       =
-            let bs2Maybe = Data.List.find (\x -> x == bs1) xs2
+            let bs2Maybe = Data.List.find (\x -> bsFilename x == bsFilename bs1) xs2
             in  case bs2Maybe of
-                    Just bs2 -> let subxs2 = Data.List.filter (\x -> x /= bs2) xs2
+                    Just bs2 -> let subxs2 = Data.List.filter (\x -> bsFilename x /= bsFilename bs2) xs2
                                 in  (OldAndNew bs1 bs2):(doDiffWith xs1 subxs2)
                     Nothing  -> (OnlyOld bs1):(doDiffWith xs1 xs2)
 

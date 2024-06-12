@@ -563,7 +563,7 @@ setContextObject_ path (t, obj) = do
     ref <- setObject obj
     git <- getGit
     commitUpdateContext $ \ctx -> do
-        Git.workTreeSet git (commitContextTree ctx) path (t, ref)
+        Git.workTreeSet git (commitContextTree ctx) path (Git.entTypeToPerm t, ref)
         return (ctx, ())
 
 -- | add a new file in in the Commit's Working Tree

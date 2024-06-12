@@ -11,6 +11,7 @@
 module Data.Git.WorkTree
     ( WorkTree
     , EntType(..)
+    , entTypeToPerm
     -- * Create new work trees
     , workTreeNew
     , workTreeFrom
@@ -47,6 +48,11 @@ type WorkTree hash = MVar (TreeSt hash)
 data EntType = EntDirectory | EntFile | EntExecutable
     deriving (Show,Eq)
 
+entTypeToPerm :: EntType -> ModePerm
+entTypeToPerm EntDirectory  = ModePerm 0o040000
+entTypeToPerm EntExecutable = ModePerm 0o100755
+entTypeToPerm EntFile       = ModePerm 0o100644
+
 -- | Create a new worktree
 workTreeNew :: IO (WorkTree hash)
 workTreeNew = newMVar M.empty >>= newMVar . TreeLoaded
@@ -80,12 +86,12 @@ workTreeSet :: (Typeable hash, HashAlgorithm hash)
             => Git hash
             -> WorkTree hash
             -> EntPath
-            -> (EntType, Ref hash)
+            -> (ModePerm, Ref hash)
             -> IO ()
-workTreeSet git wt path (entType, entRef) = diveFromRoot git wt path dive
+workTreeSet git wt path (entMode, entRef) = diveFromRoot git wt path dive
   where --dive :: TreeVar hash -> EntPath -> IO ()
         dive _          []     = error "internal error: set: empty dive"
-        dive varCurrent [file] = modifyMVar_ varCurrent (return . M.insert file (entTypeToPerm entType, TreeRef entRef))
+        dive varCurrent [file] = modifyMVar_ varCurrent (return . M.insert file (entMode, TreeRef entRef))
         dive varCurrent (x:xs) = do
             evarChild <- loadOrGetTree git x varCurrent $ \m -> do
                             -- create an empty tree
@@ -131,11 +137,6 @@ loadTreeVar git treeRef = do
     (Tree ents) <- getTree git treeRef
     let t = foldr (\(m,b,r) acc -> M.insert b (m,TreeRef r) acc) M.empty ents
     newMVar t
-
-entTypeToPerm :: EntType -> ModePerm
-entTypeToPerm EntDirectory  = ModePerm 0o040000
-entTypeToPerm EntExecutable = ModePerm 0o100755
-entTypeToPerm EntFile       = ModePerm 0o100644
 
 loadOrGetTree :: (Typeable hash, HashAlgorithm hash)
               => Git hash

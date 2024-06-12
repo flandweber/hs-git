@@ -62,6 +62,7 @@ module Data.Git
     -- * Work trees
     , WorkTree
     , EntType(..)
+    , entTypeToPerm
     , workTreeNew
     , workTreeFrom
     , workTreeDelete

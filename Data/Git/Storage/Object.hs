@@ -200,8 +200,7 @@ commitParse = do
                         if b == 0xa
                             then fail "no extra"
                             else do
-                                r <- P.tillEOL
-                                P.skipEOL
+                                r <- P.tillWs
                                 v <- concatLines <$> many (P.string " " *> P.tillEOL <* P.skipEOL)
                                 return $ CommitExtra (b `B.cons` r) v
                 concatLines = B.concat . intersperse (B.pack [0xa])

@@ -15,6 +15,7 @@ module Data.Git.Parser
     , vlf
     , tillEOL
     , skipEOL
+    , tillWs
     , skipASCII
     , takeUntilASCII
     , decimal
@@ -127,6 +128,12 @@ skipASCII c
 
 asciiEOL :: Word8
 asciiEOL = fromIntegral $ fromEnum '\n'
+
+tillWs :: Parser B.ByteString
+tillWs = P.takeWhile (/= asciiWs)
+
+asciiWs :: Word8
+asciiWs = fromIntegral $ fromEnum ' '
 
 isByte :: ByteArray byteArray => (Word8 -> Bool) -> P.Parser byteArray Word8
 isByte predicate = do

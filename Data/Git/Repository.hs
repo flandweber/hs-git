@@ -23,6 +23,8 @@ module Data.Git.Repository
     , getCommit
     , getTreeMaybe
     , getTree
+    , getBlobMaybe
+    , getBlob
     , rewrite
     , buildHTree
     , resolvePath
@@ -95,6 +97,15 @@ getTreeMaybe git ref = maybe Nothing objectToTree <$> getObject git ref True
 -- | get a specified tree but raise
 getTree :: (Typeable hash, HashAlgorithm hash) => Git hash -> Ref hash -> IO (Tree hash)
 getTree git ref = maybe err id . objectToTree <$> getObject_ git ref True
+  where err = throw $ InvalidType ref TypeTree
+
+-- | get a specified blob
+getBlobMaybe :: HashAlgorithm hash => Git hash -> Ref hash -> IO (Maybe (Blob hash))
+getBlobMaybe git ref = maybe Nothing objectToBlob <$> getObject git ref True
+
+-- | get a specified blob but raise
+getBlob :: (Typeable hash, HashAlgorithm hash) => Git hash -> Ref hash -> IO (Blob hash)
+getBlob git ref = maybe err id . objectToBlob <$> getObject_ git ref True
   where err = throw $ InvalidType ref TypeTree
 
 -- | try to resolve a string to a specific commit ref

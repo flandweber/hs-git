@@ -54,6 +54,7 @@ module Data.Git
     , getObject
     , getCommit
     , getTree
+    , getBlob
 
     -- * Set objects
     , setObject
